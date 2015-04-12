@@ -4,19 +4,26 @@ https://github.com/chriso/gauged (MIT Licensed)
 Copyright 2014 (c) Chris O'Hara <cohara87@gmail.com>
 '''
 
+import six
+
+if six.PY3:
+    long = int
+
 from time import time
 from datetime import datetime
 from sys import builtin_module_names
-from types import StringType, UnicodeType
 
 IS_PYPY = '__pypy__' in builtin_module_names
 
 def to_bytes(value):
     '''Get a byte array representing the value'''
-    if type(value) == UnicodeType:
+
+    if not isinstance(value, (six.binary_type, six.text_type)):
+        value = six.text_type(value)
+
+    if isinstance(value, six.string_types):
         return value.encode('utf8')
-    elif type(value) != StringType:
-        return str(value)
+
     return value
 
 class Time(object):

@@ -4,13 +4,18 @@ https://github.com/chriso/gauged (MIT Licensed)
 Copyright 2014 (c) Chris O'Hara <cohara87@gmail.com>
 '''
 
-from urlparse import urlparse, parse_qsl
-from urllib import unquote
+import six
+
+if six.PY3:
+    from urllib.parse import urlparse, parse_qsl, unquote
+else:
+    from urlparse import urlparse, parse_qsl
+    from urllib import unquote
+
 from .interface import DriverInterface
 from .mysql import MySQLDriver
 from .sqlite import SQLiteDriver
 from .postgresql import PostgreSQLDriver
-from ..utilities import IS_PYPY
 
 def parse_dsn(dsn_string):
     '''Parse a connection string and return the associated driver'''

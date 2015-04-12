@@ -4,6 +4,8 @@ https://github.com/chriso/gauged (MIT Licensed)
 Copyright 2014 (c) Chris O'Hara <cohara87@gmail.com>
 '''
 
+import six
+
 from .writer import Writer
 from .utilities import to_bytes, Time
 
@@ -48,14 +50,14 @@ class Config(object):
         self.update(**kwargs)
 
     def update(self, **kwargs):
-        for key in kwargs.iterkeys():
+        for key in six.iterkeys(kwargs):
             if key not in DEFAULTS:
                 raise ValueError('Unknown configuration key: ' + key)
-        for key, default in DEFAULTS.iteritems():
+        for key, default in six.iteritems(DEFAULTS):
             if key == 'defaults':
                 defaults = DEFAULTS['defaults'].copy()
                 if 'defaults' in kwargs:
-                    for key, value in kwargs['defaults'].iteritems():
+                    for key, value in six.iteritems(kwargs['defaults']):
                         if key not in defaults:
                             raise ValueError('Unknown default key: ' + key)
                         defaults[key] = value

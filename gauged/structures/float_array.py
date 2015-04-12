@@ -4,7 +4,11 @@ https://github.com/chriso/gauged (MIT Licensed)
 Copyright 2014 (c) Chris O'Hara <cohara87@gmail.com>
 '''
 
-from types import ListType, BufferType
+import six
+
+if six.PY3:
+    buffer = memoryview
+
 from ctypes import (create_string_buffer, c_void_p, py_object, byref,
     cast, addressof, c_char, c_size_t)
 from ..bridge import Gauged, FloatPtr
@@ -23,7 +27,7 @@ class FloatArray(object):
     def __init__(self, buf=None, length=0):
         '''Create a new array. The constructor accepts a buffer + byte_length or a
         python list of floats'''
-        if type(buf) == ListType:
+        if isinstance(buf, list):
             items = buf
             buf = None
         else:
@@ -31,7 +35,8 @@ class FloatArray(object):
         if buf is not None:
             if IS_PYPY:
                 buf = create_string_buffer(str(buf))
-            if type(buf) == BufferType:
+
+            if isinstance(buf, buffer):
                 address = c_void_p()
                 buf_length = c_size_t()
                 pythonapi.PyObject_AsReadBuffer(py_object(buf),

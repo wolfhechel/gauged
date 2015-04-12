@@ -3,6 +3,12 @@ Gauged
 https://github.com/chriso/gauged (MIT Licensed)
 Copyright 2014 (c) Chris O'Hara <cohara87@gmail.com>
 '''
+
+import six
+
+if six.PY3:
+    long = int
+
 from collections import OrderedDict
 from .interface import DriverInterface
 
@@ -66,7 +72,7 @@ class SQLiteDriver(DriverInterface):
     def get_block(self, namespace, offset, key):
         '''Get the block identified by namespace, offset and key'''
         cursor = self.cursor
-        cursor.execute('''SELECT data, flags FROM gauged_data
+        cursor.execute('''SELECT CAST(data AS BLOB), flags FROM gauged_data
             WHERE namespace = ? AND offset = ? AND `key` = ?''',
             ( namespace, offset, key ))
         row = cursor.fetchone()
@@ -134,7 +140,7 @@ class SQLiteDriver(DriverInterface):
         return cursor.fetchone()
 
     def set_metadata(self, metadata, replace=True):
-        params = [ param for params in metadata.iteritems() for param in params ]
+        params = [ param for params in six.iteritems(metadata) for param in params ]
         query = 'REPLACE' if replace else 'INSERT OR IGNORE'
         query += ' INTO gauged_metadata SELECT ?,?'
         query += ' UNION SELECT ?,?' * (len(metadata) - 1)

@@ -3,10 +3,9 @@ include HISTORY
 include README.md
 include lib/*.c
 include include/*.h
-include test/*.c
-include test/*.h
+include tests/*.c
+include tests/*.h
 include Makefile
-include test.py
 include .coveragerc
 include .pylintrc
 include test_drivers.cfg

@@ -4,7 +4,11 @@ https://github.com/chriso/gauged (MIT Licensed)
 Copyright 2014 (c) Chris O'Hara <cohara87@gmail.com>
 '''
 
-from types import DictType, BufferType
+import six
+
+if six.PY3:
+    buffer = memoryview
+
 from ctypes import (create_string_buffer, c_void_p, py_object, byref,
     cast, c_uint32, addressof, c_char, c_size_t, c_float)
 from ..bridge import Gauged, MapPtr, Uint32Ptr, FloatPtr
@@ -26,7 +30,7 @@ class SparseMap(object):
         '''Create a new SparseMap. The constructor accepts a buffer and
         byte_length, a python dict containing { offset: array, ... }, or a
         pointer to a C structure'''
-        if type(buf) == DictType:
+        if isinstance(buf, dict):
             items = buf
             buf = None
         else:
@@ -37,7 +41,7 @@ class SparseMap(object):
             if buf is not None:
                 if IS_PYPY:
                     buf = create_string_buffer(str(buf))
-                if type(buf) == BufferType:
+                if isinstance(buf, buffer):
                     address = c_void_p()
                     buf_length = c_size_t()
                     pythonapi.PyObject_AsReadBuffer(py_object(buf),

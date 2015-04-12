@@ -3,8 +3,13 @@ Gauged
 https://github.com/chriso/gauged (MIT Licensed)
 Copyright 2014 (c) Chris O'Hara <cohara87@gmail.com>
 '''
+from .utilities import to_bytes
 
-from types import StringType
+import six
+
+if six.PY3:
+    long = int
+
 from time import time
 from warnings import warn
 from .writer import Writer
@@ -13,8 +18,7 @@ from .drivers import get_driver, SQLiteDriver
 from .utilities import Time
 from .aggregates import Aggregate
 from .config import Config
-from .errors import (GaugedVersionMismatchError, GaugedBlockSizeMismatch,
-    GaugedSchemaError, GaugedMigrationError)
+from .errors import GaugedVersionMismatchError, GaugedBlockSizeMismatch, GaugedSchemaError
 from .version import __version__
 
 class Gauged(object):
@@ -47,7 +51,7 @@ class Gauged(object):
         in_memory = driver is None
         if in_memory:
             driver = SQLiteDriver.MEMORY
-        if type(driver) == StringType:
+        if isinstance(driver, six.string_types):
             driver = get_driver(driver)
         if config is None:
             config = Config()
@@ -67,12 +71,17 @@ class Gauged(object):
 
     def value(self, key, timestamp=None, namespace=None):
         '''Get the value of a gauge at the specified time'''
+        key = to_bytes(key)
+
         return self.make_context(key=key, end=timestamp,
             namespace=namespace).value()
 
     def aggregate(self, key, aggregate, start=None, end=None,
             namespace=None, percentile=None):
         '''Get an aggregate of all gauge data stored in the specified date range'''
+
+        key = to_bytes(key)
+
         return self.make_context(key=key, aggregate=aggregate, start=start,
             end=end, namespace=namespace,
             percentile=percentile).aggregate()

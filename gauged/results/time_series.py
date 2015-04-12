@@ -4,7 +4,6 @@ https://github.com/chriso/gauged (MIT Licensed)
 Copyright 2014 (c) Chris O'Hara <cohara87@gmail.com>
 '''
 
-from types import DictType
 from ..utilities import table_repr, to_datetime
 
 class TimeSeries(object):
@@ -14,7 +13,7 @@ class TimeSeries(object):
         '''Initialise the time series. `points` is expected to be either a list of
         tuples where each tuple represents a point (timestamp, value), or a dict where
         the keys are timestamps. Timestamps are expected to be in milliseconds'''
-        if type(points) == DictType:
+        if isinstance(points, dict):
             points = points.items()
         self.points = sorted(points)
 
@@ -95,11 +94,19 @@ class TimeSeries(object):
             self.points = [ ( x, y * lookup[x] ) for x, y in self.points if x in lookup ]
         return self
 
-    def __div__(self, operand):
+    def __truediv__(self, operand):
         if not isinstance(operand, TimeSeries):
             return TimeSeries([ ( x, float(y) / operand ) for x, y in self.points ])
         lookup = dict(operand.points)
         return TimeSeries([ ( x, float(y) / lookup[x] ) for x, y in self.points if x in lookup ])
+
+    def __floordiv__(self, operand):
+        if not isinstance(operand, TimeSeries):
+            return TimeSeries([ ( x, float(y) // operand ) for x, y in self.points ])
+        lookup = dict(operand.points)
+        return TimeSeries([ ( x, float(y) // lookup[x] ) for x, y in self.points if x in lookup ])
+
+    __div__ = __truediv__
 
     def __idiv__(self, operand):
         if not isinstance(operand, TimeSeries):

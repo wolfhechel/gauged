@@ -4,17 +4,25 @@ https://github.com/chriso/gauged (MIT Licensed)
 Copyright 2014 (c) Chris O'Hara <cohara87@gmail.com>
 '''
 
+import six
+
+if six.PY3:
+    long = int
+
 from time import time
 from threading import Timer
-from types import StringType, UnicodeType, DictType
 from collections import defaultdict
 from pprint import pprint
 from ctypes import c_uint32, byref
 from .structures import SparseMap
 from .lru import LRU
 from ctypes import c_float
-from .errors import (GaugedAppendOnlyError, GaugedKeyOverflowError, GaugedNaNError,
-    GaugedUseAfterFreeError)
+from .errors import (
+    GaugedAppendOnlyError,
+    GaugedKeyOverflowError,
+    GaugedNaNError,
+    GaugedUseAfterFreeError
+)
 from .bridge import Gauged
 from .results import Statistics
 from .utilities import to_bytes
@@ -72,7 +80,8 @@ class Writer(object):
                 this_array = self.current_array
             else:
                 return
-        if type(data) == UnicodeType:
+
+        if isinstance(data, six.string_types):
             data = data.encode('utf8')
         if debug:
             return self.debug(timestamp, namespace, data)
@@ -89,7 +98,7 @@ class Writer(object):
         whitelist = config.key_whitelist
         skip_long_keys = config.key_overflow == Writer.IGNORE
         skip_gauge_nan = config.gauge_nan == Writer.IGNORE
-        if type(data) == StringType and skip_gauge_nan \
+        if isinstance(data, six.string_types) and skip_gauge_nan \
                 and skip_long_keys and whitelist is None: # fast path
             data_points = c_uint32(0)
             if not Gauged.writer_emit_pairs(writer, namespace, data, \
@@ -97,9 +106,9 @@ class Writer(object):
                 raise MemoryError
             data_points = data_points.value
         else:
-            if type(data) == DictType:
-                data = data.iteritems()
-            elif type(data) == StringType:
+            if isinstance(data, dict):
+                data = six.iteritems(data)
+            elif isinstance(data, six.binary_type):
                 data = self.parse_query(data)
             emit = Gauged.writer_emit
             for key, value in data:
@@ -153,7 +162,7 @@ class Writer(object):
             if not Gauged.writer_flush_maps(writer, True):
                 raise MemoryError
         update_namespace = driver.add_namespace_statistics
-        for namespace, stats in statistics.iteritems():
+        for namespace, stats in six.iteritems(statistics):
             update_namespace(namespace, self.current_block,
                 stats.data_points, stats.byte_count)
         statistics.clear()
@@ -179,6 +188,9 @@ class Writer(object):
         '''Clear all data before `timestamp` for a given key. Note that the timestamp
         is rounded down to the nearest block boundary'''
         block_size = self.config.block_size
+
+        key = to_bytes(key)
+
         if namespace is None:
             namespace = self.config.namespace
         if timestamp is not None:
@@ -196,6 +208,9 @@ class Writer(object):
         '''Clear all data after `timestamp` for a given key. Note that the timestamp
         is rounded down to the nearest block boundary'''
         block_size = self.config.block_size
+
+        key = to_bytes(key)
+
         if namespace is None:
             namespace = self.config.namespace
         if timestamp is not None:
@@ -221,18 +236,18 @@ class Writer(object):
             position += 2
 
     def debug(self, timestamp, namespace, data): # pragma: no cover
-        print 'Timestamp: %s, Namespace: %s' % (timestamp, namespace)
-        if type(data) == StringType:
+        print('Timestamp: %s, Namespace: %s' % (timestamp, namespace))
+        if isinstance(data, six.string_types):
             data = self.parse_query(data)
-        elif type(data) == DictType:
-            data = data.iteritems()
+        elif isinstance(data, dict):
+            data = six.iteritems(data)
         whitelist = self.config.key_whitelist
         if whitelist is not None:
             data = { key: value for key, value in data if key in whitelist }
         else:
             data = dict(data)
         pprint(data)
-        print ''
+        print('')
 
     def flush_writer_position(self):
         config = self.config
@@ -252,7 +267,7 @@ class Writer(object):
         for key in keys:
             if key in key_cache:
                 ids[key] = key_cache[key]
-        for key, id_ in ids.iteritems():
+        for key, id_ in six.iteritems(ids):
             key_cache[key] = id_
         return ids
 

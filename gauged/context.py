@@ -4,6 +4,11 @@ https://github.com/chriso/gauged (MIT Licensed)
 Copyright 2014 (c) Chris O'Hara <cohara87@gmail.com>
 '''
 
+import six
+
+if six.PY3:
+    long = int
+
 from hashlib import sha1
 from calendar import timegm
 from datetime import date
@@ -28,7 +33,7 @@ class Context(object):
         self.no_data = last is None
         context['min_block'] = long(first or 0)
         context['max_block'] = long(last or 0)
-        for key, value in context.iteritems():
+        for key, value in six.iteritems(context):
             if value is not None:
                 self.context[key] = value
         self.check_timestamps()
@@ -205,8 +210,7 @@ class Context(object):
         interval = self.interval
         cache = self.cache
         if cache:
-            cache_key = sha1(str(dict(key=key,
-                look_behind=self.config.max_look_behind))).digest()
+            cache_key = sha1(six.text_type(dict(key=key, look_behind=self.config.max_look_behind)).encode('utf8')).digest()
             driver = self.driver
             cached = dict(driver.get_cache(namespace, cache_key, interval, start, end))
         else:
@@ -242,7 +246,7 @@ class Context(object):
         interval = self.interval if interval is None else interval
         cache = self.cache
         if cache:
-            cache_key = sha1(str(dict(key=key, aggregate=aggregate))).digest()
+            cache_key = sha1(six.text_type(dict(key=key, aggregate=aggregate)).encode('utf-8')).digest()
             driver = self.driver
             cached = dict(driver.get_cache(namespace, cache_key, interval, start, end))
         else:

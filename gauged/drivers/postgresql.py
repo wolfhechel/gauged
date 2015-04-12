@@ -3,6 +3,12 @@ Gauged
 https://github.com/chriso/gauged (MIT Licensed)
 Copyright 2014 (c) Chris O'Hara <cohara87@gmail.com>
 '''
+
+import six
+
+if six.PY3:
+    long = int
+
 from collections import OrderedDict
 from .interface import DriverInterface
 
@@ -138,7 +144,7 @@ class PostgreSQLDriver(DriverInterface):
             query = 'DELETE FROM gauged_metadata WHERE key IN (%s'
             query += ',%s' * (len(metadata) - 1) + ')'
             execute(query, metadata.keys())
-        params = [ param for params in metadata.iteritems() for param in params ]
+        params = [ param for params in six.iteritems(metadata) for param in params ]
         query = 'INSERT INTO gauged_metadata VALUES (%s,%s)'
         query += ',(%s,%s)' * (len(metadata) - 1)
         execute(query, params)
